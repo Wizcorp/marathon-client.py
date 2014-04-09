@@ -44,3 +44,5 @@ from  marathon import Marathon
 marathon = Marathon(host="http://127.0.0.1:8080")
 print marathon.list()
 ```
+
+[API documentation](http://wizcorp.github.io/marathon-client.py/)
