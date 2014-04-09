@@ -1,0 +1,7 @@
+marathon
+========
+
+.. toctree::
+   :maxdepth: 4
+
+   marathon

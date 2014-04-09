@@ -1,0 +1,266 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>marathon &mdash; marathon-client.py 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="marathon-client.py 0.1.0 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">marathon-client.py 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for marathon</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
+
+<div class="viewcode-block" id="Marathon"><a class="viewcode-back" href="../marathon.html#marathon.Marathon">[docs]</a><span class="k">class</span> <span class="nc">Marathon</span><span class="p">:</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Create a new marathon client instance to deals with the Marathon API.</span>
+
+<span class="sd">  :param host: Marathon URL.</span>
+<span class="sd">  :type host: String</span>
+<span class="sd">  :param user: Username required for the HTTP authentication.</span>
+<span class="sd">  :type user: String</span>
+<span class="sd">  :param password: Password required for the HTTP authentication.</span>
+<span class="sd">  :type password: String</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">host</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">auth</span> <span class="o">=</span> <span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s">&#39;application/json&#39;</span><span class="p">,</span>
+      <span class="s">&#39;Accept&#39;</span><span class="p">:</span> <span class="s">&#39;application/json&#39;</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="Marathon.endpoints"><a class="viewcode-back" href="../marathon.html#marathon.Marathon.endpoints">[docs]</a>  <span class="k">def</span> <span class="nf">endpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">appId</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    List tasks of all running applications if ``appId`` is not provided.</span>
+<span class="sd">    List running tasks for app ``appId`` if provided.</span>
+
+<span class="sd">    :param appId: The app you want to list the endpoints.</span>
+<span class="sd">    :type appId: String</span>
+<span class="sd">    :return: Response from the Marathon API</span>
+<span class="sd">    :rtype: text/plain</span>
+<span class="sd">    :raise: requests.exceptions.HTTPError</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">appId</span><span class="p">:</span>
+      <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;/v2/apps/&#39;</span> <span class="o">+</span> <span class="n">urllib</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">appId</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;/tasks&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;/v2/tasks&#39;</span>
+
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s">&#39;text/plain&#39;</span><span class="p">,</span>
+      <span class="s">&#39;Accept&#39;</span><span class="p">:</span> <span class="s">&#39;text/plain&#39;</span>
+    <span class="p">}</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">+</span> <span class="n">url</span><span class="p">,</span>
+      <span class="n">auth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">auth</span><span class="p">,</span>
+      <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span>
+</div>
+<div class="viewcode-block" id="Marathon.kill"><a class="viewcode-back" href="../marathon.html#marathon.Marathon.kill">[docs]</a>  <span class="k">def</span> <span class="nf">kill</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">appId</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Destroy app ``appId``.</span>
+
+<span class="sd">    :param appId: The app you want to destroy.</span>
+<span class="sd">    :type appId: String</span>
+<span class="sd">    :return: Response from the Marathon API</span>
+<span class="sd">    :rtype: application/json</span>
+<span class="sd">    :raise: requests.exceptions.HTTPError</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">+</span> <span class="s">&#39;/v2/apps/&#39;</span> <span class="o">+</span> <span class="n">urllib</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">appId</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">),</span>
+      <span class="n">auth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">auth</span><span class="p">,</span>
+      <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">)</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span>
+</div>
+<div class="viewcode-block" id="Marathon.list"><a class="viewcode-back" href="../marathon.html#marathon.Marathon.list">[docs]</a>  <span class="k">def</span> <span class="nf">list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    List all running apps.</span>
+
+<span class="sd">    :return: Response from the Marathon API</span>
+<span class="sd">    :rtype: application/json</span>
+<span class="sd">    :raise: requests.exceptions.HTTPError</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">+</span> <span class="s">&#39;/v2/apps&#39;</span><span class="p">,</span>
+      <span class="n">auth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">auth</span><span class="p">,</span>
+      <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">)</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span>
+</div>
+<div class="viewcode-block" id="Marathon.list_tasks"><a class="viewcode-back" href="../marathon.html#marathon.Marathon.list_tasks">[docs]</a>  <span class="k">def</span> <span class="nf">list_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">appId</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    List running tasks for app ``appId``.</span>
+
+<span class="sd">    :param appId: The app you want to list the tasks.</span>
+<span class="sd">    :type appId: String</span>
+<span class="sd">    :return: Response from the Marathon API</span>
+<span class="sd">    :rtype: application/json</span>
+<span class="sd">    :raise: requests.exceptions.HTTPError</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">+</span> <span class="s">&#39;/v2/apps/&#39;</span> <span class="o">+</span> <span class="n">urllib</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">appId</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;/tasks&#39;</span><span class="p">,</span>
+      <span class="n">auth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">auth</span><span class="p">,</span>
+      <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">)</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span>
+</div>
+<div class="viewcode-block" id="Marathon.scale"><a class="viewcode-back" href="../marathon.html#marathon.Marathon.scale">[docs]</a>  <span class="k">def</span> <span class="nf">scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">appId</span><span class="p">,</span> <span class="n">instances</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Scale the number of app instances for app ``appId``.</span>
+
+<span class="sd">    :param appId: The app you want to scale.</span>
+<span class="sd">    :type appId: String</span>
+<span class="sd">    :param instances: The number of instances you want to have.</span>
+<span class="sd">    :type instances: Integer</span>
+<span class="sd">    :return: Response from the Marathon API</span>
+<span class="sd">    :rtype: application/json</span>
+<span class="sd">    :raise: requests.exceptions.HTTPError</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">+</span> <span class="s">&#39;/v2/apps/&#39;</span> <span class="o">+</span> <span class="n">urllib</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">appId</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">),</span>
+      <span class="n">auth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">auth</span><span class="p">,</span>
+      <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">)</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+
+    <span class="n">payload</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s">&#39;app&#39;</span><span class="p">]</span>
+    <span class="n">payload</span><span class="p">[</span><span class="s">&#39;instances&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">instances</span><span class="p">)</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">+</span> <span class="s">&#39;/v2/apps/&#39;</span> <span class="o">+</span> <span class="n">urllib</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">appId</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">),</span>
+      <span class="n">auth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">auth</span><span class="p">,</span>
+      <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
+      <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">))</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span>
+</div>
+<div class="viewcode-block" id="Marathon.search"><a class="viewcode-back" href="../marathon.html#marathon.Marathon.search">[docs]</a>  <span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">appId</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cmd</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    List all running apps, filtered by appId and command.</span>
+
+<span class="sd">    :param appId: The filter you want to use to search an app by appId.</span>
+<span class="sd">    :type appId: String</span>
+<span class="sd">    :param cmd: The filter you want to use to search an app by command.</span>
+<span class="sd">    :type cmd: String</span>
+<span class="sd">    :return: Response from the Marathon API</span>
+<span class="sd">    :rtype: application/json</span>
+<span class="sd">    :raise: requests.exceptions.HTTPError</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">appId</span><span class="p">:</span>
+      <span class="n">params</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">appId</span>
+    <span class="k">if</span> <span class="n">cmd</span><span class="p">:</span>
+      <span class="n">params</span><span class="p">[</span><span class="s">&#39;cmd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmd</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">+</span> <span class="s">&#39;/v2/apps&#39;</span><span class="p">,</span>
+      <span class="n">auth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">auth</span><span class="p">,</span>
+      <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
+      <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span>
+</div>
+<div class="viewcode-block" id="Marathon.start"><a class="viewcode-back" href="../marathon.html#marathon.Marathon.start">[docs]</a>  <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create and start a new app.</span>
+
+<span class="sd">    :param payload: The app definition.</span>
+<span class="sd">    :type appId: dict</span>
+<span class="sd">    :return: Response from the Marathon API</span>
+<span class="sd">    :rtype: application/json</span>
+<span class="sd">    :raise: requests.exceptions.HTTPError</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">print</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">+</span> <span class="s">&#39;/v2/apps&#39;</span><span class="p">,</span>
+      <span class="n">auth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">auth</span><span class="p">,</span>
+      <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
+      <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">))</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">marathon-client.py 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Emilien Kenler.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>
