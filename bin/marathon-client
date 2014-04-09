@@ -1,0 +1,71 @@
+#!/usr/bin/python
+
+import sys, argparse
+from marathon import Marathon
+
+def main():
+
+  parser = argparse.ArgumentParser()
+
+  parser.add_argument('-H', '--host', help='Marathon host', required=True)
+  parser.add_argument('-U', '--user', help='User name to authenticate against Marathon', default=None)
+  parser.add_argument('-P', '--pass', help='Password to authenticate against Marathon', default=None, dest='password')
+
+  subparsers = parser.add_subparsers(help='Command', dest='subparser')
+
+  parser_endpoints = subparsers.add_parser('endpoints', help='Show the endpoints for a given app.')
+  parser_endpoints.add_argument('-i', '--id', help='A unique identifier for the app.', default=None)
+
+  parser_kill = subparsers.add_parser('kill', help='Kill an app and remove it from Marathon.')
+  parser_kill.add_argument('-i', '--id', help='A unique identifier for the app.', required=True)
+
+  parser_list = subparsers.add_parser('list', help='Show a list of running apps and their options.')
+
+  parser_list_tasks = subparsers.add_parser('list_tasks', help='Show a list of an app\'s running tasks.')
+  parser_list_tasks.add_argument('-i', '--id', help='A unique identifier for the app.', required=True)
+
+  parser_scale = subparsers.add_parser('scale', help='Scale the number of app instances.')
+  parser_scale.add_argument('-i', '--id', help='A unique identifier for the app.', required=True)
+  parser_scale.add_argument('-n', '--num_instances', help='The number of instances to run.', required=True, type=int)
+
+  parser_search = subparsers.add_parser('search', help='Search the current list of apps.')
+  parser_search.add_argument('-i', '--id', help='A unique identifier for the app.', default=None)
+  parser_search.add_argument('-C', '--command', help='The command for the app.', default=None)
+
+  parser_start = subparsers.add_parser('start', help='Start a new app.')
+  parser_start.add_argument('-i', '--id', help='A unique identifier for the app.', required=True)
+  parser_start.add_argument('-C', '--command', help='The command to start the app.', required=True, dest='cmd')
+  parser_start.add_argument('-X', '--executor', help='The mesos executor to be used to launch the app.', default="")
+  parser_start.add_argument('-n', '--num_instances', help='The mesos executor to be used to launch the app.', type=int, default=1, dest='instances')
+  parser_start.add_argument('-c', '--cpus', help='The number of CPUs to give to this app, can be a fraction.', type=float, default=1.0)
+  parser_start.add_argument('-m', '--mem', help='The memory limit for this app, in MB, can be a fraction.', type=float, default=10.0)
+  parser_start.add_argument('-u', '--uri', help='URIs to download and unpack into the working directory.', nargs='+', default=[], dest='uris')
+  parser_start.add_argument('-e', '--env', help='Environment variables to add to the process, as NAME=VALUE.', nargs='+', default={})
+  parser_start.add_argument('--constraint', help='Environment variables to add to the process, as NAME=VALUE.', nargs='+', default={}, dest='contraints')
+
+  args = parser.parse_args()
+
+  marathon = Marathon(args.host, args.user, args.password)
+
+  if args.subparser == 'endpoints':
+    print marathon.endpoints(args.id)
+  elif args.subparser == 'kill':
+    print marathon.kill(args.id)
+  elif args.subparser == 'list':
+    print marathon.list()
+  elif args.subparser == 'list_tasks':
+    print marathon.list_tasks(args.id)
+  elif args.subparser == 'scale':
+    print marathon.scale(args.id,args.num_instances)
+  elif args.subparser == 'search':
+    print marathon.search(args.id,args.command)
+  elif args.subparser == 'start':
+    opts = vars(args)
+    del opts['subparser']
+    print marathon.start(opts)
+  else:
+    print args
+    raise NotImplementedError()
+
+if __name__ == '__main__':
+   main()
