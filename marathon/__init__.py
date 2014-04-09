@@ -2,11 +2,12 @@
 
 import json
 import requests
+import urllib
 
 class Marathon:
 
   def __init__(self, host, user=None, password=None):
-    self.host = host
+    self.host = urllib.quote(host)
     self.auth = (user, password)
     self.headers = {
       'Content-Type': 'application/json',
@@ -15,7 +16,7 @@ class Marathon:
 
   def endpoints(self, appId=None):
     if appId:
-      url = '/v2/apps/' + appId + '/tasks'
+      url = '/v2/apps/' + urllib.quote(appId, safe='') + '/tasks'
     else:
       url = '/v2/tasks'
 
@@ -30,7 +31,7 @@ class Marathon:
     return r.text
 
   def kill(self, appId):
-    r = requests.delete(self.host + '/v2/apps/' + appId,
+    r = requests.delete(self.host + '/v2/apps/' + urllib.quote(appId, safe=''),
       auth=self.auth,
       headers=self.headers)
     r.raise_for_status()
@@ -44,14 +45,14 @@ class Marathon:
     return r.text
 
   def list_tasks(self, appId):
-    r = requests.get(self.host + '/v2/apps/' + appId + '/tasks',
+    r = requests.get(self.host + '/v2/apps/' + urllib.quote(appId, safe='') + '/tasks',
       auth=self.auth,
       headers=self.headers)
     r.raise_for_status()
     return r.text
 
   def scale(self, appId, instances):
-    r = requests.get(self.host + '/v2/apps/' + appId,
+    r = requests.get(self.host + '/v2/apps/' + urllib.quote(appId, safe=''),
       auth=self.auth,
       headers=self.headers)
     r.raise_for_status()
@@ -59,7 +60,7 @@ class Marathon:
     payload = r.json()['app']
     payload['instances'] = instances
 
-    r = requests.put(self.host + '/v2/apps/' + appId,
+    r = requests.put(self.host + '/v2/apps/' + urllib.quote(appId, safe=''),
       auth=self.auth,
       headers=self.headers,
       data=json.dumps(payload))

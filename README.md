@@ -2,7 +2,7 @@
 
 Client for the Marathon scheduler written in Python.
 
-Inspired by the [gen marathon client](https://github.com/mesosphere/marathon_client).
+Inspired by the [gem marathon client](https://github.com/mesosphere/marathon_client).
 
 ## Installation
 
