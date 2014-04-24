@@ -17,7 +17,7 @@ class Marathon:
   """
 
   def __init__(self, host, user=None, password=None):
-    self.host = urllib.quote(host)
+    self.host = host
     self.auth = (user, password)
     self.headers = {
       'Content-Type': 'application/json',
