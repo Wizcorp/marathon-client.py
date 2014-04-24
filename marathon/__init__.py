@@ -165,7 +165,6 @@ class Marathon:
     :raise: requests.exceptions.HTTPError
     """
 
-    print json.dumps(payload)
     r = requests.post(self.host + '/v2/apps',
       auth=self.auth,
       headers=self.headers,
