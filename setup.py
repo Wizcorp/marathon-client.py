@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='marathon-client',
-    version='0.1.0',
+    version='0.1.1',
     author='Emilien Kenler',
     author_email='ekenler@wizcorp.jp',
     packages=['marathon'],
