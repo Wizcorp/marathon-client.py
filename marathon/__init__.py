@@ -130,9 +130,9 @@ class Marathon:
                            'ports',
                            'uris']
 
-    payload = dict(zip([(attr, r.json()['app'][attr])
+    payload = dict([(attr, r.json()['app'][attr])
                             for attr in editable_attributes
-                            if r.json()['app'][attr] is not None]))
+                            if r.json()['app'][attr] is not None])
     payload['instances'] = int(instances)
 
     r = requests.put(self.host + '/v2/apps/' + urllib.quote(appId, safe=''),
