@@ -156,6 +156,28 @@ class Marathon:
         r.raise_for_status()
         return r.text
 
+    def restart(self, appId, force=False):
+        """
+        Restart app ``appId``.
+
+        :param appId: The app you want to restart.
+        :type appId: String
+        :return: Response from the Marathon API
+        :rtype: application/json
+        :raise: requests.exceptions.HTTPError
+        """
+        parameters = ""
+        if force:
+            parameters = "?force=true"
+
+        r = requests.post(
+            self.host + '/v2/apps/' + urllib.quote(appId, safe='')
+            + '/restart' + parameters,
+            auth=self.auth,
+            headers=self.headers)
+        r.raise_for_status()
+        return r.text
+
     def kill(self, appId):
         """
         Destroy app ``appId``.
