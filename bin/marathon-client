@@ -122,6 +122,8 @@ def main():
         opts = vars(args)
         del opts['subparser']
         print marathon.start(opts)
+    elif args.subparser == 'restart':
+        print marathon.restart(args.id)
     elif args.subparser == 'info':
         print marathon.info()
     else:
